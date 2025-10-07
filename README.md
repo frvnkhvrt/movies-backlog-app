@@ -1,6 +1,6 @@
-# MovieWeb Kickstart Project
+# Movie Watchlist App
 
-A launching point for building a movie streaming website.
+An app to showcase my personal movie watchlist with style.
 
 ## Features
 
