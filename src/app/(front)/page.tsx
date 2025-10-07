@@ -141,108 +141,126 @@ export default function Index() {
 
   React.useEffect(() => {
     const fetchData = async () => {
-      // Fetch watchlist movies
-      const watchlistPromises = watchlistTitles.map(async (title) => {
-        try {
-          const searchData = await MovieService.searchMovies(title);
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-          const movieResult = searchData.results.find(result =>
-            result.media_type === 'movie' &&
-            (result.title?.toLowerCase() === title.toLowerCase() ||
-             result.original_title?.toLowerCase() === title.toLowerCase())
-          ) || searchData.results[0];
+      try {
+        // Fetch watchlist movies
+        const watchlistPromises = watchlistTitles.map(async (title) => {
+          try {
+            const searchData = await MovieService.searchMovies(title);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+            const movieResult = searchData.results.find(result =>
+              result.media_type === 'movie' &&
+              (result.title?.toLowerCase() === title.toLowerCase() ||
+               result.original_title?.toLowerCase() === title.toLowerCase())
+            ) || searchData.results[0];
 
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-          if (movieResult && movieResult.media_type === 'movie') {
-            // Fetch full movie details to get release date
-            const fullMovieData = await MovieService.findMovie(movieResult.id);
-            const data = fullMovieData.data;
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
-            data.director = (data as any).credits?.crew?.find((c: any) => c.job === 'Director')?.name || '-';
-            return data;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+            if (movieResult && movieResult.media_type === 'movie') {
+              // Fetch full movie details to get release date
+              const fullMovieData = await MovieService.findMovie(movieResult.id);
+              const data = fullMovieData.data;
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
+              data.director = (data as any).credits?.crew?.find((c: any) => c.job === 'Director')?.name || '-';
+              return data;
+            }
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            return movieResult || null;
+          } catch (error) {
+            console.error(`Failed to fetch movie: ${title}`, error);
+            return null;
           }
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-          return movieResult || null;
-        } catch {
-          return null;
+        });
+        const watchlistShows = (await Promise.all(watchlistPromises)).filter(Boolean) as Show[];
+
+        const requests: ShowRequest[] = [
+          {
+            title: 'Trending Now',
+            req: { requestType: RequestType.TRENDING, mediaType: MediaType.ALL },
+            visible: true,
+          },
+          {
+            title: 'Netflix TV Shows',
+            req: { requestType: RequestType.NETFLIX, mediaType: MediaType.TV },
+            visible: true,
+          },
+          {
+            title: 'Popular TV Shows',
+            req: {
+              requestType: RequestType.TOP_RATED,
+              mediaType: MediaType.TV,
+              genre: Genre.TV_MOVIE,
+            },
+            visible: true,
+          },
+          {
+            title: 'Korean Movies',
+            req: {
+              requestType: RequestType.KOREAN,
+              mediaType: MediaType.MOVIE,
+              genre: Genre.THRILLER,
+            },
+            visible: true,
+          },
+          {
+            title: 'Comedy Movies',
+            req: {
+              requestType: RequestType.GENRE,
+              mediaType: MediaType.MOVIE,
+              genre: Genre.COMEDY,
+            },
+            visible: true,
+          },
+          {
+            title: 'Action Movies',
+            req: {
+              requestType: RequestType.GENRE,
+              mediaType: MediaType.MOVIE,
+              genre: Genre.ACTION,
+            },
+            visible: true,
+          },
+          {
+            title: 'Romance Movies',
+            req: {
+              requestType: RequestType.GENRE,
+              mediaType: MediaType.MOVIE,
+              genre: Genre.ROMANCE,
+            },
+            visible: true,
+          },
+          {
+            title: 'Scary Movies',
+            req: {
+              requestType: RequestType.GENRE,
+              mediaType: MediaType.MOVIE,
+              genre: Genre.THRILLER,
+            },
+            visible: true,
+          },
+        ];
+        const shows = await MovieService.getShows(requests);
+        const myWatchlist = [{ title: 'My Watchlist', shows: watchlistShows, visible: true, description: 'An app to showcase my personal watchlist with style.' }];
+        const combinedShows = [...myWatchlist, ...shows];
+        setAllShows(combinedShows);
+
+        // Set initial random show from watchlist only
+        if (watchlistShows.length > 0) {
+          setRandomShow(watchlistShows[0]);
+        } else {
+          // Fallback: use first show from other categories
+          const allMovies = shows.flatMap(s => s.shows);
+          if (allMovies.length > 0) {
+            setRandomShow(allMovies[0]);
+          }
         }
-      });
-      const watchlistShows = (await Promise.all(watchlistPromises)).filter(Boolean) as Show[];
-
-      const requests: ShowRequest[] = [
-        {
-          title: 'Trending Now',
-          req: { requestType: RequestType.TRENDING, mediaType: MediaType.ALL },
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        // Set some fallback content
+        setAllShows([{
+          title: 'Error',
+          shows: [],
           visible: true,
-        },
-        {
-          title: 'Netflix TV Shows',
-          req: { requestType: RequestType.NETFLIX, mediaType: MediaType.TV },
-          visible: true,
-        },
-        {
-          title: 'Popular TV Shows',
-          req: {
-            requestType: RequestType.TOP_RATED,
-            mediaType: MediaType.TV,
-            genre: Genre.TV_MOVIE,
-          },
-          visible: true,
-        },
-        {
-          title: 'Korean Movies',
-          req: {
-            requestType: RequestType.KOREAN,
-            mediaType: MediaType.MOVIE,
-            genre: Genre.THRILLER,
-          },
-          visible: true,
-        },
-        {
-          title: 'Comedy Movies',
-          req: {
-            requestType: RequestType.GENRE,
-            mediaType: MediaType.MOVIE,
-            genre: Genre.COMEDY,
-          },
-          visible: true,
-        },
-        {
-          title: 'Action Movies',
-          req: {
-            requestType: RequestType.GENRE,
-            mediaType: MediaType.MOVIE,
-            genre: Genre.ACTION,
-          },
-          visible: true,
-        },
-        {
-          title: 'Romance Movies',
-          req: {
-            requestType: RequestType.GENRE,
-            mediaType: MediaType.MOVIE,
-            genre: Genre.ROMANCE,
-          },
-          visible: true,
-        },
-        {
-          title: 'Scary Movies',
-          req: {
-            requestType: RequestType.GENRE,
-            mediaType: MediaType.MOVIE,
-            genre: Genre.THRILLER,
-          },
-          visible: true,
-        },
-      ];
-      const shows = await MovieService.getShows(requests);
-      const myWatchlist = [{ title: 'My Watchlist', shows: watchlistShows, visible: true, description: 'An app to showcase my personal watchlist with style.' }];
-      const combinedShows = [...myWatchlist, ...shows];
-      setAllShows(combinedShows);
-
-      // Set initial random show from watchlist only
-      if (watchlistShows.length > 0) {
-        setRandomShow(watchlistShows[0]);
+          description: 'Failed to load movies. Please check your TMDB API token.'
+        }]);
       }
     };
     fetchData();
