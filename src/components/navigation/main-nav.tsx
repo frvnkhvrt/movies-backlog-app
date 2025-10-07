@@ -40,6 +40,7 @@ export function MainNav({ items }: MainNavProps) {
   // search store
   const searchStore = useSearchStore();
   const [isScrolled, setIsScrolled] = React.useState(false);
+  const [isTransitioning, setIsTransitioning] = React.useState(false);
 
   React.useEffect(() => {
     window.addEventListener('popstate', handlePopstateEvent, false);
@@ -112,6 +113,13 @@ export function MainNav({ items }: MainNavProps) {
     return () => window.removeEventListener('scroll', changeBgColor);
   }, [isScrolled]);
 
+  // blur effect on navigation transition
+  React.useEffect(() => {
+    setIsTransitioning(true);
+    const timer = setTimeout(() => setIsTransitioning(false), 300);
+    return () => clearTimeout(timer);
+  }, [path]);
+
   const handleChangeStatusOpen = (value: boolean): void => {
     searchStore.setOpen(value);
     if (!value) searchStore.reset();
@@ -143,9 +151,10 @@ export function MainNav({ items }: MainNavProps) {
                     key={index}
                     href={item.href}
                     className={cn(
-                      'flex items-center text-sm font-medium text-foreground/60 transition hover:text-foreground/80',
-                      path === item.href && 'font-bold text-foreground',
+                      'flex items-center text-sm font-medium text-foreground/60 transition-all duration-300 ease-smooth hover:text-foreground/80 hover:scale-105',
+                      path === item.href && 'font-bold text-foreground scale-105',
                       item.disabled && 'cursor-not-allowed opacity-80',
+                      isTransitioning && 'blur-sm',
                     )}
                     onClick={() => handleChangeStatusOpen(false)}>
                     {item.title}
@@ -170,7 +179,7 @@ export function MainNav({ items }: MainNavProps) {
               align="start"
               sideOffset={20}
               // className="w-52 overflow-y-auto overflow-x-hidden rounded-sm bg-neutral-800 text-slate-200 dark:bg-neutral-800 dark:text-slate-200"
-              className="w-52 overflow-y-auto overflow-x-hidden rounded-sm">
+              className="w-52 overflow-y-auto overflow-x-hidden rounded-none">
               <DropdownMenuLabel>
                 <Link
                   href="/"
@@ -198,8 +207,9 @@ export function MainNav({ items }: MainNavProps) {
                       {/* } */}
                       <span
                         className={cn(
-                          'line-clamp-1 text-foreground/60 hover:text-foreground/80',
-                          path === item.href && 'font-bold text-foreground',
+                          'line-clamp-1 text-foreground/60 transition-all duration-300 ease-smooth hover:text-foreground/80 hover:scale-105',
+                          path === item.href && 'font-bold text-foreground scale-105',
+                          isTransitioning && 'blur-sm',
                         )}>
                         {item.title}
                       </span>

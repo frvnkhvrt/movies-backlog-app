@@ -82,6 +82,7 @@ const ShowsContainer = ({ shows }: ShowsContainerProps) => {
               key={item.title}
               title={item.title}
               shows={item.shows ?? []}
+              description={item.description}
             />
           ),
       )}

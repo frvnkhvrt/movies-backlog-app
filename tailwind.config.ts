@@ -76,6 +76,9 @@ module.exports = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      transitionTimingFunction: {
+        'smooth': 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+      },
       keyframes: {
         "accordion-down": {
           from: { height: 0 },
@@ -85,13 +88,33 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: 0 },
         },
+        "subtle-glow": {
+          "0%, 100%": { boxShadow: "0 0 10px rgba(255, 255, 255, 0.1)" },
+          "50%": { boxShadow: "0 0 20px rgba(255, 255, 255, 0.3)" },
+        },
+        "fade-in": {
+          from: { opacity: 0 },
+          to: { opacity: 1 },
+        },
+        "slide-in-up": {
+          from: { transform: "translateY(20px)", opacity: 0 },
+          to: { transform: "translateY(0)", opacity: 1 },
+        },
+        "scale-in": {
+          from: { transform: "scale(0.95)", opacity: 0 },
+          to: { transform: "scale(1)", opacity: 1 },
+        },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        "accordion-down": "accordion-down 0.3s ease-smooth",
+        "accordion-up": "accordion-up 0.3s ease-smooth",
+        "subtle-glow": "subtle-glow 2s ease-in-out infinite",
+        "fade-in": "fade-in 0.5s ease-out",
+        "slide-in-up": "slide-in-up 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+        "scale-in": "scale-in 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
       },
       fontFamily: {
-        sans: ["var(--font-sans)", ...fontFamily.sans],
+        sans: ['Geist', ...fontFamily.sans],
         heading: ["var(--font-heading)", ...fontFamily.sans],
       },
     },

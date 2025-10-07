@@ -120,6 +120,11 @@ const ShowModal = () => {
       );
       if (result?.key) setTrailer(result.key);
     }
+
+    // Set director for movies
+    if (type === 'movie') {
+      data.director = (data as any).credits?.crew?.find((c: any) => c.job === 'Director')?.name || '-';
+    }
   };
 
   const handleCloseModal = () => {
@@ -181,7 +186,7 @@ const ShowModal = () => {
       open={modalStore.open}
       onOpenChange={handleCloseModal}
       aria-label="Modal containing show's details">
-      <DialogContent className="w-full overflow-hidden rounded-md bg-zinc-900 p-0 text-left align-middle shadow-xl dark:bg-zinc-900 sm:max-w-3xl lg:max-w-4xl">
+      <DialogContent className="w-full overflow-hidden rounded-none bg-zinc-900 p-0 text-left align-middle shadow-xl dark:bg-zinc-900 sm:max-w-3xl lg:max-w-4xl">
         <div className="video-wrapper relative aspect-video">
           <CustomImage
             fill
@@ -218,7 +223,7 @@ const ShowModal = () => {
               <Link href={handleHref()}>
                 <Button
                   aria-label={`${isPlaying ? 'Pause' : 'Play'} show`}
-                  className="group h-auto rounded py-1.5">
+                  className="group h-auto rounded-none py-1.5">
                   <>
                     <Icons.play
                       className="mr-1.5 h-6 w-6 fill-current"
@@ -232,7 +237,7 @@ const ShowModal = () => {
             <Button
               aria-label={`${isMuted ? 'Unmute' : 'Mute'} video`}
               variant="ghost"
-              className="h-auto rounded-full bg-neutral-800 p-1.5 opacity-50 ring-1 ring-slate-400 hover:bg-neutral-800 hover:opacity-100 hover:ring-white focus:ring-offset-0 dark:bg-neutral-800 dark:hover:bg-neutral-800"
+              className="h-auto rounded-none bg-neutral-800 p-1.5 opacity-50 ring-1 ring-slate-400 hover:bg-neutral-800 hover:opacity-100 hover:ring-white focus:ring-offset-0 dark:bg-neutral-800 dark:hover:bg-neutral-800"
               onClick={handleChangeMute}>
               {isMuted ? (
                 <Icons.volumeMute className="h-6 w-6" aria-hidden="true" />
@@ -247,16 +252,14 @@ const ShowModal = () => {
             {modalStore.show?.title ?? modalStore.show?.name}
           </DialogTitle>
           <div className="flex items-center space-x-2 text-sm sm:text-base">
-            <p className="font-semibold text-green-400">
-              {Math.round((Number(modalStore.show?.vote_average) / 10) * 100) ??
-                '-'}
-              % Match
-            </p>
             {modalStore.show?.release_date ? (
               <p>{getYear(modalStore.show?.release_date)}</p>
             ) : modalStore.show?.first_air_date ? (
               <p>{getYear(modalStore.show?.first_air_date)}</p>
             ) : null}
+            {modalStore.show?.director && (
+              <p>• {modalStore.show.director}</p>
+            )}
             {modalStore.show?.original_language && (
               <span className="grid h-4 w-7 place-items-center text-xs font-bold text-neutral-400 ring-1 ring-neutral-400">
                 {modalStore.show.original_language.toUpperCase()}

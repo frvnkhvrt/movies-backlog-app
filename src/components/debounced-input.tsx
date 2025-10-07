@@ -91,7 +91,7 @@ export function DebouncedInput({
         aria-label="Search"
         variant="ghost"
         className={cn(
-          'absolute top-1/2 h-auto -translate-y-1/2 rounded-full p-1 hover:bg-transparent',
+          'absolute top-1/2 h-auto -translate-y-1/2 rounded-none p-1 hover:bg-transparent',
           open ? 'left-1' : 'left-[9px]',
         )}
         onClick={() => {

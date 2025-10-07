@@ -1,3 +1,5 @@
+@import '@fontsource/geist/400.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -157,7 +159,8 @@ body,
   -webkit-backdrop-filter: blur(25px);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   overflow-y: auto;
-  transition: transform 0.3s;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
 }
 
 .btn {
@@ -176,10 +179,11 @@ body,
   line-height: 1.5;
   border-radius: 0.8rem;
   transition:
-    color 0.15s ease-in-out,
-    background-color 0.15s ease-in-out,
-    border-color 0.15s ease-in-out,
-    box-shadow 0.15s ease-in-out;
+    color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    background-color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    border-color 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: color, background-color, border-color, box-shadow;
 }
 
 .seasons {
@@ -207,13 +211,14 @@ body,
   z-index: 3;
   opacity: 1;
   cursor: pointer;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   display: flex;
   align-items: center;
   justify-content: center;
   width: 2.3rem;
   padding: 0;
   height: 2.3rem;
+  will-change: opacity;
 }
 
 .panel .close svg {
@@ -321,8 +326,9 @@ body,
   margin: 8px;
   border: 8px solid #fff;
   border-radius: 50%;
-  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  animation: lds-ring 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
   border-color: #fff transparent transparent transparent;
+  will-change: transform;
 }
 
 .b-loading div:nth-child(1) {
@@ -344,5 +350,14 @@ body,
 
   100% {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes subtle-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
   }
 }

@@ -1,155 +1,267 @@
-import { Icons } from "@/components/icons";
-import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
-import { siteConfig } from "@/configs/site";
-import { ArrowRight } from "lucide-react";
-import Link from "next/link";
+'use client';
+
+import Hero from '@/components/hero';
+import ShowsContainer from '@/components/shows-container';
+import { MediaType, type Show } from '@/types';
+import { siteConfig } from '@/configs/site';
+import { RequestType, type ShowRequest } from '@/enums/request-type';
+import MovieService from '@/services/MovieService';
+import { Genre } from '@/enums/genre';
+import { getRandomShow } from '@/lib/utils';
+import React from 'react';
+
+export const revalidate = 3600;
+
+const watchlistTitles = [
+  "Cold War",
+  "Suzhou River",
+  "Kaili Blues",
+  "Certified Copy",
+  "Werckmeister Harmonies",
+  "Mysterious Skin",
+  "A Serious Man",
+  "Manchester by the Sea",
+  "A different Man",
+  "A Separation",
+  "Under the Silver Lake",
+  "Quién te Cantará",
+  "The Ghost Writer",
+  "Magical Girl",
+  "The Wrestler",
+  "Wheel of Fortune and Fantasy",
+  "Nine Queens",
+  "Revanche",
+  "Winter Sleep",
+  "After Yang",
+  "Departures",
+  "The Lobster",
+  "So Long, My Son",
+  "Fallen Leaves",
+  "Thirst",
+  "Blindspotting",
+  "After Yang",
+  "Red Rocket",
+  "Pain and Glory",
+  "Close your Eyes",
+  "The Chaser",
+  "Upstream Color",
+  "Hunger",
+  "Irreversible",
+  "Red Post on Escher Street",
+  "An Elephant Sitting Still",
+  "The Worst Person in the World",
+  "The Man Without a Past",
+  "Pulse",
+  "The Aura",
+  "First Reformed",
+  "2046",
+  "Mary and Max",
+  "Loveless",
+  "Antiporno",
+  "The Wind Rises",
+  "La La Land",
+  "The Killing of a Sacred Deer",
+  "Isle of Dogs",
+  "The Tale of the Princess Kaguya",
+  "I Saw the Devil",
+  "Children of men",
+  "The Revenant",
+  "Holy Motors",
+  "The Secret in their Eyes",
+  "Dancer in the Dark",
+  "Collateral",
+  "Leviathan",
+  "The Witch",
+  "Mother",
+  "Enemy",
+  "Secret Sunshine",
+  "Caché",
+  "Long Day's Journey Into Night",
+  "Afire",
+  "Marriage Story",
+  "Three Billboards Outside Ebbing, Missouri",
+  "Paterson",
+  "Good Time",
+  "Under the Skin",
+  "Volver",
+  "Antichrist",
+  "American Psycho",
+  "The Pianist",
+  "Hanagatami",
+  "Whiplash",
+  "Before Sunset",
+  "Mommy",
+  "Portrait of a Lady on Fire",
+  "Son of Saul",
+  "Burning",
+  "Memento",
+  "Fantastic Mr. Fox",
+  "Climax",
+  "Phantom Thread",
+  "Inside Llewyn Davis",
+  "Adaptation",
+  "The Master",
+  "The Hunt",
+  "The White Ribbon",
+  "Memories of Murder",
+  "Shame",
+  "No Country for Old Men",
+  "The Piano Teacher",
+  "Love Exposure",
+  "Amour",
+  "There will be Blood",
+  "Yi Yi",
+  "Synecdoche, New York",
+  "Paris, Texas",
+  "Trouble Everyday",
+  "Cerrar Los Ojos",
+  "Millennium Mambo",
+  "Master and Commander",
+  "Two Lovers",
+  "Volver",
+  "The Lost City of Z",
+  "Dunkirk",
+  "El Sol del Futuro",
+  "El Aura",
+  "Adaptation",
+  "Climax",
+  "Casa de Tolerancia",
+  "Amour",
+  "Silence",
+  "First Cow",
+  "Election",
+  "Infernal Affairs"
+];
 
 export default function Index() {
+  const h1 = `${siteConfig.name} Home`;
+  const [allShows, setAllShows] = React.useState<any[]>([]);
+  const [randomShow, setRandomShow] = React.useState<Show | null>(null);
+  const [heroIndex, setHeroIndex] = React.useState(0);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      // Fetch watchlist movies
+      const watchlistPromises = watchlistTitles.map(async (title) => {
+        try {
+          const searchData = await MovieService.searchMovies(title);
+          const movieResult = searchData.results.find(result =>
+            result.media_type === 'movie' &&
+            (result.title?.toLowerCase() === title.toLowerCase() ||
+             result.original_title?.toLowerCase() === title.toLowerCase())
+          ) || searchData.results[0];
+
+          if (movieResult && movieResult.media_type === 'movie') {
+            // Fetch full movie details to get release date
+            const fullMovieData = await MovieService.findMovie(movieResult.id);
+            const data = fullMovieData.data;
+            data.director = (data as any).credits?.crew?.find((c: any) => c.job === 'Director')?.name || '-';
+            return data;
+          }
+          return movieResult || null;
+        } catch {
+          return null;
+        }
+      });
+      const watchlistShows = (await Promise.all(watchlistPromises)).filter(Boolean) as Show[];
+
+      const requests: ShowRequest[] = [
+        {
+          title: 'Trending Now',
+          req: { requestType: RequestType.TRENDING, mediaType: MediaType.ALL },
+          visible: true,
+        },
+        {
+          title: 'Netflix TV Shows',
+          req: { requestType: RequestType.NETFLIX, mediaType: MediaType.TV },
+          visible: true,
+        },
+        {
+          title: 'Popular TV Shows',
+          req: {
+            requestType: RequestType.TOP_RATED,
+            mediaType: MediaType.TV,
+            genre: Genre.TV_MOVIE,
+          },
+          visible: true,
+        },
+        {
+          title: 'Korean Movies',
+          req: {
+            requestType: RequestType.KOREAN,
+            mediaType: MediaType.MOVIE,
+            genre: Genre.THRILLER,
+          },
+          visible: true,
+        },
+        {
+          title: 'Comedy Movies',
+          req: {
+            requestType: RequestType.GENRE,
+            mediaType: MediaType.MOVIE,
+            genre: Genre.COMEDY,
+          },
+          visible: true,
+        },
+        {
+          title: 'Action Movies',
+          req: {
+            requestType: RequestType.GENRE,
+            mediaType: MediaType.MOVIE,
+            genre: Genre.ACTION,
+          },
+          visible: true,
+        },
+        {
+          title: 'Romance Movies',
+          req: {
+            requestType: RequestType.GENRE,
+            mediaType: MediaType.MOVIE,
+            genre: Genre.ROMANCE,
+          },
+          visible: true,
+        },
+        {
+          title: 'Scary Movies',
+          req: {
+            requestType: RequestType.GENRE,
+            mediaType: MediaType.MOVIE,
+            genre: Genre.THRILLER,
+          },
+          visible: true,
+        },
+      ];
+      const shows = await MovieService.getShows(requests);
+      const myWatchlist = [{ title: 'My Watchlist', shows: watchlistShows, visible: true, description: 'An app to showcase my personal watchlist with style.' }];
+      const combinedShows = [...myWatchlist, ...shows];
+      setAllShows(combinedShows);
+
+      // Set initial random show from watchlist only
+      if (watchlistShows.length > 0) {
+        setRandomShow(watchlistShows[0]);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Change hero every 3 seconds from watchlist only
+  React.useEffect(() => {
+    if (allShows.length === 0) return;
+    const watchlist = allShows.find(s => s.title === 'My Watchlist');
+    if (watchlist && watchlist.shows.length > 0) {
+      const interval = setInterval(() => {
+        setHeroIndex(prev => (prev + 1) % watchlist.shows.length);
+        setRandomShow(watchlist.shows[heroIndex]);
+      }, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [allShows, heroIndex]);
+
   return (
     <>
-      <section
-        id="hero"
-        aria-labelledby="hero-heading"
-        className="container mx-auto flex flex-col items-center justify-center gap-4 pb-8 pt-28 text-center md:pb-12 lg:py-32"
-      >
-        <Link href={siteConfig.links.twitter} target="_blank" rel="noreferrer">
-          <Badge
-            aria-hidden="true"
-            className="rounded-md px-3.5 py-1.5"
-            variant="secondary"
-          >
-            <Icons.twitter className="mr-2 h-3.5 w-3.5" />
-            Follow along on Twitter
-          </Badge>
-          <span className="sr-only">Twitter</span>
-        </Link>
-        <h1 className="max-w-screen-lg text-center font-heading text-3xl sm:text-5xl md:text-6xl lg:text-7xl">
-          {siteConfig.name} - {siteConfig.slogan}
-          {/* {siteConfig.name} - watch tv shows online, watch movies online. */}
-          {/* An e-commerce skateshop built with everything new in Next.js 13 */}
-        </h1>
-        <p className="max-w-[42rem] leading-normal text-muted-foreground sm:text-xl sm:leading-8">
-          Step into a world where entertainment knows no boundaries, where your
-          screens come alive with an endless array of captivating stories.
-        </p>
-        <div className="space-x-4">
-          <Link className={`${buttonVariants({ size: "lg" })}`} href="/home">
-            Watch Now <ArrowRight className="ml-1 inline-block" />
-          </Link>
-          {/* <Link className={`${buttonVariants({ size: "lg", variant: "outline" })}`} href={siteConfig.links.github} target="_blank" */}
-          {/*   rel="noreferrer">GitHub</Link> */}
-        </div>
-      </section>
-      <section
-        id="features"
-        className="container space-y-6 bg-slate-50 py-8 dark:bg-transparent md:py-12 lg:py-24"
-      >
-        <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-          <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
-            Features
-          </h2>
-          <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-            {siteConfig.name} offers a host of powerful features designed to
-            enhance your movie-watching experience.
-          </p>
-        </div>
-        <div className="mx-auto grid justify-center gap-4 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
-          <div className="relative overflow-hidden rounded-lg border bg-background p-2">
-            <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
-              <svg viewBox="0 0 24 24" className="h-12 w-12 fill-current">
-                <path d="M0 12C0 5.373 5.373 0 12 0c4.873 0 9.067 2.904 10.947 7.077l-15.87 15.87a11.981 11.981 0 0 1-1.935-1.099L14.99 12H12l-8.485 8.485A11.962 11.962 0 0 1 0 12Zm12.004 12L24 12.004C23.998 18.628 18.628 23.998 12.004 24Z" />
-              </svg>
-              <div className="space-y-2">
-                <h3 className="font-bold">Vast Movie Library</h3>
-                <p className="text-sm text-muted-foreground">
-                  Thousands of movies, spanning diverse genres, languages, and
-                  decades.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="relative overflow-hidden rounded-lg border bg-background p-2">
-            <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
-              <svg className="h-12 w-12 fill-current" viewBox="0 0 24 24">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-              <div className="space-y-2">
-                <h3 className="font-bold">Personalized Recommendations</h3>
-                <p className="text-sm text-muted-foreground">
-                  Suggesting movies and shows tailored to your taste.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="relative overflow-hidden rounded-lg border bg-background p-2">
-            <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
-              <svg className="h-12 w-12 fill-current" viewBox="0 0 24 24">
-                <path d="M4 1.5C2.17363 1.5 0.5 2.9003 0.5 4.85714V14.1429C0.5 16.0997 2.17363 17.5 4 17.5H10.5V19.5H7.5C6.94772 19.5 6.5 19.9477 6.5 20.5V21.5C6.5 22.0523 6.94771 22.5 7.5 22.5H16.5C17.0523 22.5 17.5 22.0523 17.5 21.5V20.5C17.5 19.9477 17.0523 19.5 16.5 19.5H13.5V17.5H20C21.8264 17.5 23.5 16.0997 23.5 14.1429V4.85714C23.5 2.9003 21.8264 1.5 20 1.5H4Z" />
-              </svg>
-              <div className="space-y-2">
-                <h3 className="font-bold">Multiple Device Support</h3>
-                <p className="text-sm text-muted-foreground">
-                  Including smart TVs, smartphones, tablets, laptops, and gaming
-                  consoles.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="relative overflow-hidden rounded-lg border bg-background p-2">
-            <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
-              <svg viewBox="0 0 24 24" className="h-12 w-12 fill-current">
-                <path d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C13.666 10.618 15.027 12 18.001 12c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C16.337 6.182 14.976 4.8 12.001 4.8zm-6 7.2c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624 1.177 1.194 2.538 2.576 5.512 2.576 3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C10.337 13.382 8.976 12 6.001 12z" />
-              </svg>
-              <div className="space-y-2">
-                <h3 className="font-bold">Watch Party</h3>
-                <p className="text-sm text-muted-foreground">
-                  Watch together with friends. Chat and react in real time to
-                  the same stream.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="relative overflow-hidden rounded-lg border bg-background p-2">
-            <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1"
-                className="h-12 w-12 fill-current"
-              >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-              </svg>
-              <div className="space-y-2">
-                <h3 className="font-bold">High-Definition Streaming</h3>
-                <p className="text-sm text-muted-foreground">
-                  Stunning visuals with content available in 4K, Ultra HD and
-                  HDR.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="relative overflow-hidden rounded-lg border bg-background p-2">
-            <div className="flex h-[180px] flex-col justify-between rounded-md p-6">
-              <svg viewBox="0 0 24 24" className="h-12 w-12 fill-current">
-                <path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697 0 12.165 0 9.667 0 7.589.654 6.104 1.872 4.56 3.147 3.757 4.992 3.757 7.218c0 4.039 2.467 5.76 6.476 7.219 2.585.92 3.445 1.574 3.445 2.583 0 .98-.84 1.545-2.354 1.545-1.875 0-4.965-.921-6.99-2.109l-.9 5.555C5.175 22.99 8.385 24 11.714 24c2.641 0 4.843-.624 6.328-1.813 1.664-1.305 2.525-3.236 2.525-5.732 0-4.128-2.524-5.851-6.594-7.305h.003z" />
-              </svg>
-              <div className="space-y-2">
-                <h3 className="font-bold">Free</h3>
-                <p className="text-sm text-muted-foreground">
-                  Everything is free, no subscription or credit card required.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        {/* <div className="mx-auto text-center md:max-w-[58rem]"> */}
-        {/*   <p className="leading-normal text-muted-foreground sm:text-lg sm:leading-7"> */}
-        {/*     Taxonomy also includes a blog and a full-featured documentation site */}
-        {/*   </p> */}
-        {/* </div> */}
-      </section>
+      <h1 className="hidden">{h1}</h1>
+      <Hero randomShow={randomShow} />
+      <ShowsContainer shows={allShows} />
     </>
   );
 }

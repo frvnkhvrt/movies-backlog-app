@@ -16,7 +16,7 @@ const DynamicTooltip = ({ children, text }: DynamicTooltipProps) => {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent className="relative mb-2.5 rounded bg-slate-50 font-medium text-slate-950 shadow-2xl ">
+        <TooltipContent className="relative mb-2.5 rounded-none bg-slate-50 font-medium text-slate-950 shadow-2xl ">
           <p>{text}</p>
         </TooltipContent>
       </Tooltip>

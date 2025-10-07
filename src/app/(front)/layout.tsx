@@ -5,7 +5,7 @@ const FrontLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen">
       <SiteHeader />
-      <main>{children}</main>
+      <main className="transition-all duration-300 ease-smooth filter-none">{children}</main>
       <SiteFooter />
     </div>
   );

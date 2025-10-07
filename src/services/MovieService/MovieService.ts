@@ -49,7 +49,7 @@ class MovieService extends BaseService {
 
   static findMovie = cache(async (id: number) => {
     return this.axios(baseUrl).get<Show>(
-      `/movie/${id}?append_to_response=keywords`,
+      `/movie/${id}?append_to_response=keywords,credits`,
     );
   });
 
@@ -74,9 +74,10 @@ class MovieService extends BaseService {
   }
 
   static findMovieByIdAndType = cache(async (id: number, type: string) => {
+    const append = type === 'movie' ? 'videos,keywords,credits' : 'videos,keywords';
     const params: Record<string, string> = {
       language: 'en-US',
-      append_to_response: 'videos,keywords',
+      append_to_response: append,
     };
     const response: AxiosResponse<ShowWithGenreAndVideo> = await this.axios(
       baseUrl,
@@ -87,9 +88,9 @@ class MovieService extends BaseService {
   static urlBuilder(req: TmdbRequest) {
     switch (req.requestType) {
       case RequestType.ANIME_LATEST:
-        return `/discover/${req.mediaType}?with_keywords=210024%2C&language=en-US&sort_by=primary_release_date.desc&release_date.lte=2024-11-10&with_runtime.gte=1`;
+        return `/discover/${req.mediaType}?with_keywords=210024%2C&language=en-US&sort_by=primary_release_date.desc&with_runtime.gte=1`;
       case RequestType.ANIME_TRENDING:
-        return `/discover/${req.mediaType}?with_keywords=210024%2C&language=en-US&sort_by=popularity.desc&release_date.lte=2024-11-10&with_runtime.gte=1`;
+        return `/discover/${req.mediaType}?with_keywords=210024%2C&language=en-US&sort_by=popularity.desc&with_runtime.gte=1`;
       case RequestType.ANIME_TOP_RATED:
         return `/discover/${req.mediaType}?with_keywords=210024%2C&language=en-US&sort_by=vote_count.desc&air_date.lte=2024-11-10`;
       case RequestType.ANIME_NETFLIX:
@@ -97,29 +98,37 @@ class MovieService extends BaseService {
       case RequestType.TRENDING:
         return `/trending/${
           req.mediaType
-        }/day?language=en-US&with_original_language=en&page=${req.page ?? 1}`;
+        }/day?language=en-US&with_original_language=en&page=${req.page ?? 1}${
+          req.mediaType === 'tv' ? '&without_keywords=210024' : ''
+        }`;
       case RequestType.TOP_RATED:
         return `/${req.mediaType}/top_rated?page=${
           req.page ?? 1
-        }&with_original_language=en&language=en-US`;
+        }&with_original_language=en&language=en-US${
+          req.mediaType === 'tv' ? '&without_keywords=210024' : ''
+        }`;
       case RequestType.NETFLIX:
         return `/discover/${
           req.mediaType
         }?with_networks=213&with_original_language=en&language=en-US&page=${
           req.page ?? 1
-        }`;
+        }${req.mediaType === 'tv' ? '&without_keywords=210024' : ''}`;
       case RequestType.POPULAR:
         return `/${
           req.mediaType
         }/popular?language=en-US&with_original_language=en&page=${
           req.page ?? 1
-        }&without_genres=${Genre.TALK},${Genre.NEWS}`;
+        }&without_genres=${Genre.TALK},${Genre.NEWS}${
+          req.mediaType === 'tv' ? '&without_keywords=210024' : ''
+        }`;
       case RequestType.GENRE:
         return `/discover/${req.mediaType}?with_genres=${
           req.genre
         }&language=en-US&with_original_language=en&page=${
           req.page ?? 1
-        }&without_genres=${Genre.TALK},${Genre.NEWS}`;
+        }&without_genres=${Genre.TALK},${Genre.NEWS}${
+          req.mediaType === 'tv' ? '&without_keywords=210024' : ''
+        }`;
       case RequestType.ANIME_GENRE:
         return `/discover/${req.mediaType}?with_genres=${
           req.genre
@@ -142,7 +151,11 @@ class MovieService extends BaseService {
     mediaType: MediaType;
     page?: number;
   }) {
-    return this.axios(baseUrl).get<TmdbPagingResponse>(this.urlBuilder(req));
+    const url = this.urlBuilder(req);
+    // Ensure we get release dates in the response
+    const separator = url.includes('?') ? '&' : '?';
+    const fullUrl = `${url}${separator}include_adult=false`;
+    return this.axios(baseUrl).get<TmdbPagingResponse>(fullUrl);
   }
 
   static getShows = cache(async (requests: ShowRequest[]) => {
@@ -159,17 +172,18 @@ class MovieService extends BaseService {
           visible: requests[i].visible,
         });
       } else if (this.isFulfilled(res)) {
+        let results = res.value.data.results;
         if (
           requestTypesNeedUpdateMediaType.indexOf(requests[i].req.requestType) >
           -1
         ) {
-          res.value.data.results.forEach(
+          results.forEach(
             (f) => (f.media_type = requests[i].req.mediaType),
           );
         }
         shows.push({
           title: requests[i].title,
-          shows: res.value.data.results,
+          shows: results,
           visible: requests[i].visible,
         });
       } else {

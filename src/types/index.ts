@@ -11,6 +11,7 @@ export type CategorizedShows = {
   title: string;
   shows: Show[];
   visible: boolean;
+  description?: string;
 };
 
 export type NavItem = {
@@ -54,6 +55,7 @@ export type Show = {
   original_name?: string;
   keywords: KeyWordResponse;
   seasons: ISeason[];
+  director?: string;
 };
 
 export type KeyWord = {
