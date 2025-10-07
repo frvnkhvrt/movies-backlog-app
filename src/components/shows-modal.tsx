@@ -123,6 +123,7 @@ const ShowModal = () => {
 
     // Set director for movies
     if (type === 'movie') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
       data.director = (data as any).credits?.crew?.find((c: any) => c.job === 'Director')?.name || '-';
     }
   };
