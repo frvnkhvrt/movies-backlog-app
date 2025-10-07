@@ -34,6 +34,7 @@ const ShowsContainer = ({ shows }: ShowsContainerProps) => {
 
   React.useEffect(() => {
     void handleOpenModal();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleOpenModal = async (): Promise<void> => {
@@ -51,7 +52,7 @@ const ShowsContainer = ({ shows }: ShowsContainerProps) => {
       const data: Show = response.data;
 
       if (data)
-        useModalStore.setState({
+        modalStore.setState({
           show: data,
           open: true,
           play: true,

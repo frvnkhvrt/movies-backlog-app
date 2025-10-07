@@ -25,8 +25,10 @@ const ShowsCarousel = ({
   shows,
   description,
   autoplay = true,
-  autoplayDelay = 5000,
-  easing = 'easeInOut'
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  autoplayDelay: _autoplayDelay = 5000,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  easing: _easing = 'easeInOut',
 }: ShowsCarouselProps) => {
   const pathname = usePathname();
   const heroStore = useHeroStore();
@@ -96,7 +98,10 @@ const ShowsCarousel = ({
 
     const scrollAmount = 300; // Moderate distance
     const { scrollLeft } = showsRef.current;
-    const newScrollLeft = direction === 'left' ? scrollLeft - scrollAmount : scrollLeft + scrollAmount;
+    const newScrollLeft =
+      direction === 'left'
+        ? scrollLeft - scrollAmount
+        : scrollLeft + scrollAmount;
 
     showsRef.current.scrollTo({ left: newScrollLeft, behavior: 'smooth' });
 
@@ -129,7 +134,7 @@ const ShowsCarousel = ({
     const scroll = () => {
       if (!showsRef.current) return;
       showsRef.current.scrollLeft += 0.5; // Slower, smoother scroll
-      const { scrollLeft, scrollWidth, offsetWidth } = showsRef.current;
+      const { scrollLeft, scrollWidth } = showsRef.current;
       if (scrollLeft >= scrollWidth / 2) {
         showsRef.current.scrollLeft = scrollLeft - scrollWidth / 2;
       }
@@ -145,14 +150,13 @@ const ShowsCarousel = ({
   return (
     <section
       aria-label={`Carousel of ${title}`}
-      className="relative my-[3vw] p-0 animate-fade-in"
+      className="relative my-[3vw] animate-fade-in p-0"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onFocus={() => setIsFocused(true)}
       onBlur={() => setIsFocused(false)}
       tabIndex={0}
-      role="region"
-    >
+      role="region">
       <div className="space-y-1 sm:space-y-2.5">
         <h2 className="m-0 px-[4%] text-lg font-semibold text-foreground/80 transition-colors hover:text-foreground sm:text-xl 2xl:px-[60px]">
           {title ?? '-'}
@@ -170,24 +174,25 @@ const ShowsCarousel = ({
               'absolute left-0 top-0 z-10 mr-2 hidden h-full w-[4%] items-center justify-center rounded-l-none bg-transparent py-0 text-transparent hover:bg-secondary/90 hover:text-foreground md:block 2xl:w-[60px]',
               isScrollable ? 'md:block' : 'md:hidden',
             )}
-            onClick={() => scrollToDirection('left')}
-          >
+            onClick={() => scrollToDirection('left')}>
             <Icons.chevronLeft className="h-8 w-8" aria-hidden="true" />
           </Button>
           <div
             ref={showsRef}
-            className="no-scrollbar m-0 grid auto-cols-[calc(100%/3)] grid-flow-col overflow-x-auto overflow-y-hidden px-[4%] py-0 will-change-transform transform-gpu sm:auto-cols-[25%] md:touch-pan-y lg:auto-cols-[20%] xl:auto-cols-[calc(100%/6)] 2xl:px-[60px]"
-          >
+            className="no-scrollbar m-0 grid transform-gpu auto-cols-[calc(100%/3)] grid-flow-col overflow-x-auto overflow-y-hidden px-[4%] py-0 will-change-transform sm:auto-cols-[25%] md:touch-pan-y lg:auto-cols-[20%] xl:auto-cols-[calc(100%/6)] 2xl:px-[60px]">
             {duplicatedShows.map((show, index) => (
-              <ShowCard key={`${show.id}-${index}`} show={show} pathname={pathname} />
+              <ShowCard
+                key={`${show.id}-${index}`}
+                show={show}
+                pathname={pathname}
+              />
             ))}
           </div>
           <Button
             aria-label="Scroll to right"
             variant="ghost"
             className="absolute right-0 top-0 z-10 m-0 ml-2 hidden h-full w-[4%] items-center justify-center rounded-r-none bg-transparent py-0 text-transparent hover:bg-secondary/70 hover:text-foreground md:block 2xl:w-[60px]"
-            onClick={() => scrollToDirection('right')}
-          >
+            onClick={() => scrollToDirection('right')}>
             <Icons.chevronRight className="h-8 w-8" aria-hidden="true" />
           </Button>
         </div>
@@ -199,6 +204,8 @@ const ShowsCarousel = ({
 export default ShowsCarousel;
 
 export const ShowCard = ({ show }: { show: Show; pathname: string }) => {
+  const modalStore = useModalStore();
+
   const imageOnErrorHandler = (
     event: React.SyntheticEvent<HTMLImageElement, Event>,
   ) => {
@@ -207,12 +214,17 @@ export const ShowCard = ({ show }: { show: Show; pathname: string }) => {
 
   // Get release year for display
   const getReleaseYear = (show: Show): string => {
-    const date = show.media_type === MediaType.MOVIE ? show.release_date : show.first_air_date;
+    const date =
+      show.media_type === MediaType.MOVIE
+        ? show.release_date
+        : show.first_air_date;
     return date ? new Date(date).getFullYear().toString() : '';
   };
 
   const releaseYear = getReleaseYear(show);
-  const displayTitle = `${getNameFromShow(show)}${releaseYear ? ` (${releaseYear})` : ''}`;
+  const displayTitle = `${getNameFromShow(show)}${
+    releaseYear ? ` (${releaseYear})` : ''
+  }`;
 
   return (
     <picture className="relative aspect-[2/3] px-1">
@@ -232,7 +244,7 @@ export const ShowCard = ({ show }: { show: Show; pathname: string }) => {
             : '/images/grey-thumbnail.jpg'
         }
         alt={displayTitle}
-        className="h-full w-full cursor-pointer transition-all duration-300 ease-smooth will-change-transform filter-none md:hover:scale-105 md:hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] md:hover:filter md:hover:blur-[1px]"
+        className="h-full w-full cursor-pointer filter-none transition-all duration-300 ease-smooth will-change-transform md:hover:scale-105 md:hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] md:hover:blur-[1px] md:hover:filter"
         fill
         sizes="(max-width: 768px) 50vw, (max-width: 1200px) 100vw, 33vw"
         style={{
@@ -247,7 +259,7 @@ export const ShowCard = ({ show }: { show: Show; pathname: string }) => {
             '',
             `${path}/${getSlug(show.id, name)}`,
           );
-          useModalStore.setState({
+          modalStore.setState({
             show: show,
             open: true,
             play: true,

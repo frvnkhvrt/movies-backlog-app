@@ -9,6 +9,9 @@ interface ModalState {
   setShow: (show: Show | null) => void;
   play: boolean;
   setPlay: (play: boolean) => void;
+  setState: (
+    state: Partial<Pick<ModalState, 'open' | 'firstLoad' | 'show' | 'play'>>,
+  ) => void;
   reset: () => void;
 }
 
@@ -21,6 +24,7 @@ export const useModalStore = create<ModalState>()((set) => ({
   setShow: (show: Show | null) => set(() => ({ show })),
   play: false,
   setPlay: (play: boolean) => set(() => ({ play })),
+  setState: set,
   reset: () =>
     set(() => ({
       show: null,

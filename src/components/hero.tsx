@@ -40,7 +40,7 @@ const Hero = ({ randomShow }: HeroProps) => {
       findMovie
         .then((response: AxiosResponse<Show>) => {
           const { data } = response;
-          useModalStore.setState({ show: data, open: true, play: true });
+          modalStore.setState({ show: data, open: true, play: true });
         })
         .catch((error) => {
           console.error(`findMovie: `, error);
@@ -141,7 +141,7 @@ const Hero = ({ randomShow }: HeroProps) => {
                         '',
                         `${path}/${getSlug(randomShow.id, name)}`,
                       );
-                      useModalStore.setState({
+                      modalStore.setState({
                         show: randomShow,
                         open: true,
                         play: true,
