@@ -14,10 +14,10 @@ import Script from 'next/script';
 
 export const runtime = 'edge';
 
-const fontHeading = localFont({
-  src: '../assets/fonts/CalSans-SemiBold.woff2',
-  variable: '--font-heading',
-});
+// const fontHeading = localFont({
+//   src: '../assets/fonts/Geist-Regular.ttf',
+//   variable: '--font-heading',
+// });
 
 export const viewport: Viewport = {
   themeColor: [
@@ -73,7 +73,6 @@ export default function RootLayout({
       <body
         className={cn(
           'overlflow-y-auto min-h-screen overflow-x-hidden bg-background font-sans antialiased',
-          fontHeading.variable,
         )}>
         <ThemeProvider
           attribute="class"
