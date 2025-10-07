@@ -16,10 +16,10 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    NEXT_PUBLIC_APP_URL: z.string().url(),
-    NEXT_PUBLIC_TMDB_TOKEN: z.string(),
+    NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+    NEXT_PUBLIC_TMDB_TOKEN: z.string().optional(),
     NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: z.string().optional(),
-    NEXT_PUBLIC_SITE_NAME: z.string(),
+    NEXT_PUBLIC_SITE_NAME: z.string().optional(),
     NEXT_PUBLIC_TWITTER: z.string().url().optional(),
     NEXT_PUBLIC_FACEBOOK: z.string().url().optional(),
     NEXT_PUBLIC_INSTAGRAM: z.string().url().optional(),
@@ -32,12 +32,14 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_APP_URL:
+      process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
     NODE_ENV: process.env.NODE_ENV,
-    NEXT_PUBLIC_TMDB_TOKEN: process.env.NEXT_PUBLIC_TMDB_TOKEN,
+    NEXT_PUBLIC_TMDB_TOKEN: process.env.NEXT_PUBLIC_TMDB_TOKEN ?? '',
     NEXT_PUBLIC_GOOGLE_ANALYTICS_ID:
       process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
-    NEXT_PUBLIC_SITE_NAME: process.env.NEXT_PUBLIC_SITE_NAME,
+    NEXT_PUBLIC_SITE_NAME:
+      process.env.NEXT_PUBLIC_SITE_NAME ?? 'Movies Backlog',
     NEXT_PUBLIC_TWITTER: process.env.NEXT_PUBLIC_TWITTER ?? 'https://x.com',
     NEXT_PUBLIC_FACEBOOK:
       process.env.NEXT_PUBLIC_FACEBOOK ?? 'https://facebook.com',
