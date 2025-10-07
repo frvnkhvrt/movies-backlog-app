@@ -10,7 +10,6 @@ import { type AxiosResponse } from 'axios';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import React from 'react';
-import CustomImage from './custom-image';
 import { usePathname } from 'next/navigation';
 
 interface HeroProps {
@@ -19,14 +18,12 @@ interface HeroProps {
 
 const Hero = ({ randomShow }: HeroProps) => {
   const path = usePathname();
-  React.useEffect(() => {
-    window.addEventListener('popstate', handlePopstateEvent, false);
-    return () => {
-      window.removeEventListener('popstate', handlePopstateEvent, false);
-    };
-  }, []);
 
-  const handlePopstateEvent = () => {
+  // stores
+  const modalStore = useModalStore();
+  const searchStore = useSearchStore();
+
+  const handlePopstateEvent = React.useCallback(() => {
     const pathname = window.location.pathname;
     if (!/\d/.test(pathname)) {
       modalStore.reset();
@@ -49,11 +46,14 @@ const Hero = ({ randomShow }: HeroProps) => {
           console.error(`findMovie: `, error);
         });
     }
-  };
+  }, [modalStore]);
 
-  // stores
-  const modalStore = useModalStore();
-  const searchStore = useSearchStore();
+  React.useEffect(() => {
+    window.addEventListener('popstate', handlePopstateEvent, false);
+    return () => {
+      window.removeEventListener('popstate', handlePopstateEvent, false);
+    };
+  }, [handlePopstateEvent]);
 
   if (searchStore.query.length > 0) {
     return null;
@@ -86,9 +86,9 @@ const Hero = ({ randomShow }: HeroProps) => {
               className="-z-40 h-full w-full bg-cover bg-center"
               style={{
                 backgroundImage: `url(${
-                  randomShow?.backdrop_path || randomShow?.poster_path
+                  randomShow?.backdrop_path ?? randomShow?.poster_path
                     ? `https://image.tmdb.org/t/p/original${
-                        randomShow.backdrop_path || randomShow.poster_path
+                        randomShow.backdrop_path ?? randomShow.poster_path
                       }`
                     : '/images/grey-thumbnail.jpg'
                 })`,
@@ -111,9 +111,7 @@ const Hero = ({ randomShow }: HeroProps) => {
                       ? getYear(randomShow.first_air_date)
                       : '-'}
                   </p>
-                  {randomShow?.director && (
-                    <p>• {randomShow.director}</p>
-                  )}
+                  {randomShow?.director && <p>• {randomShow.director}</p>}
                 </div>
                 {/* <p className="line-clamp-4 text-sm text-gray-300 md:text-base"> */}
                 <p className="hidden text-[1.2vw] sm:line-clamp-3">
